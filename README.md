@@ -16,11 +16,11 @@
 
 ## 实现与来源
 
-官方形状使用公开仓库 [`littletiny/original_performance_takehome`](https://github.com/littletiny/original_performance_takehome) 的 [commit `816687ed901032d73b74101a38b9eabd04695002`](https://github.com/littletiny/original_performance_takehome/commit/816687ed901032d73b74101a38b9eabd04695002) 中的 913-cycle 程序。它将确定性的指令序列编码在源码内，构建内核时解码为挑战模拟器的 ISA 指令；官方形状的编码程序包含 10,537 个静态 bundle。
+官方形状使用公开仓库 [`littletiny/original_performance_takehome`](https://github.com/littletiny/original_performance_takehome) 的 [commit `816687ed901032d73b74101a38b9eabd04695002`](https://github.com/littletiny/original_performance_takehome/commit/816687ed901032d73b74101a38b9eabd04695002) 中的 913-cycle 程序。本仓库将该确定性指令序列写成可直接检查的 Python ISA tuple：553 个固定 bundle 明文列出，360 个调度组用普通循环列出每种分支对应的具体操作数，构建内核时生成 10,537 个静态 bundle。源码不使用压缩数据或反序列化。
 
-本地对源码所做的改动是增加形状分派：上述官方形状使用该 913-cycle 程序，其他形状调用原有的 `build_kernel_baseline` 标量实现。**913-cycle 核心来自上述公开 checkpoint，不是本轮独立原创优化。**本仓库保留了源码顶部的 Anthropic 版权与使用声明原文；其中写明允许修改和使用，但不允许发布或再分发解答。
+本地对源码所做的改动是将该程序展开为明文低层指令，并增加形状分派：上述官方形状使用该 913-cycle 程序，其他形状调用原有的 `build_kernel_baseline` 标量实现。**913-cycle 核心来自上述公开 checkpoint；可读源码只是对已发布指令的等价展开，并未恢复原作者的高层调度生成器，也不是本轮独立原创优化。**本仓库保留了源码顶部的 Anthropic 版权与使用声明原文；其中写明允许修改和使用，但不允许发布或再分发解答。
 
-本仓库 `perf_takehome.py` 的 SHA-256 为 `215C4228E1A6CC998338CAAAB7D25B499A15C6931A6CB2E886C31A67AD61DD38`。它只使用 Python 标准库和原挑战的 `problem.py`，运行时不依赖额外的搜索工具或外部文件。
+本仓库 `perf_takehome.py` 的 SHA-256 为 `AD1A4A5B120ECB8BFBC069E2AECE93B23062EE1F6BCDBF25AFFC1DE29CA261C9`。它只使用 Python 标准库和原挑战的 `problem.py`，运行时不依赖额外的搜索工具或外部文件。
 
 ## 复现
 
@@ -44,4 +44,6 @@ python tests/submission_tests.py
 wsl -d ubuntu2004 -- /home/sakauma/data/miniconda3/envs/egor/bin/python tests/submission_tests.py
 ```
 
-本次还验证了官方形状的多个随机种子与边界输入，以及若干非官方形状的兼容路径。`problem.py`、`tests/frozen_problem.py` 和 `tests/submission_tests.py` 均未修改。
+上一版压缩表示曾验证官方形状的多个随机种子与边界输入，以及若干非官方形状的兼容路径。`problem.py`、`tests/frozen_problem.py` 和 `tests/submission_tests.py` 均未修改。
+
+明文改写另经独立核对：官方形状生成的完整 `instrs`（含 pause 位置）和 debug info 与上一版逐项相同；四个非官方形状的指令、输出内存与周期相同。关闭固定程序开关及多次构建隔离也通过验证。明文版重新通过官方 9/9，九次均为 913 cycles。
